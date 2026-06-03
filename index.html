@@ -1,0 +1,2518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>唐一丹 · Yidan Tang — 可编辑版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ====== GitHub Primer-inspired Reset & Base ====== */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg-canvas:#f6f8fa;
+  --bg-overlay:#ffffff;
+  --bg-inset:#f6f8fa;
+  --bg-success:#dafbe1;
+  --bg-danger:#ffebe9;
+  --bg-accent:#ddf4ff;
+  --border-default:#d0d7de;
+  --border-muted:#d8dee4;
+  --fg-default:#1f2328;
+  --fg-muted:#656d76;
+  --fg-subtle:#6e7781;
+  --accent-fg:#0969da;
+  --accent-emphasis:#0969da;
+  --success-fg:#1a7f37;
+  --success-emphasis:#1a7f37;
+  --danger-fg:#cf222e;
+  --danger-emphasis:#cf222e;
+  --attention-fg:#9a6700;
+  --attention-emphasis:#9a6700;
+  --done-fg:#8250df;
+  --done-emphasis:#8250df;
+  --sponsors-fg:#bf3989;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji';
+  --font-mono:'JetBrains Mono','SFMono-Regular','Consolas',monospace;
+  --font-size-sm:12px;
+  --font-size-base:14px;
+  --font-size-md:16px;
+  --font-size-lg:20px;
+  --font-size-xl:24px;
+  --font-size-2xl:32px;
+  --radius-sm:6px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --shadow-sm:0 1px 0 rgba(31,35,40,0.04);
+  --shadow-md:0 3px 6px rgba(140,149,159,0.15);
+  --shadow-lg:0 8px 24px rgba(140,149,159,0.2);
+  --transition:0.2s cubic-bezier(0.3,0,0.5,1);
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-body);
+  background:var(--bg-canvas);
+  color:var(--fg-default);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+/* ====== Edit Mode Styles ====== */
+.edit-toolbar{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:9999;
+  background:#24292f;
+  color:#fff;
+  padding:8px 24px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:13px;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+  transition:transform 0.3s;
+}
+.edit-toolbar.hidden{transform:translateY(-100%);}
+.edit-toolbar .toolbar-brand{
+  font-weight:700;
+  font-size:14px;
+  display:flex;align-items:center;gap:6px;
+}
+.edit-toolbar .toolbar-brand span{
+  background:#0969da;
+  padding:2px 8px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:600;
+}
+.edit-toolbar button{
+  padding:5px 14px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,.25);
+  background:transparent;
+  color:#fff;
+  font-size:12px;
+  cursor:pointer;
+  transition:all .15s;
+  font-weight:500;
+}
+.edit-toolbar button:hover{background:rgba(255,255,255,.12);}
+.edit-toolbar button.primary{
+  background:#0969da;
+  border-color:#0969da;
+}
+.edit-toolbar button.primary:hover{background:#0550ae;}
+.edit-toolbar button.danger{border-color:#cf222e;color:#ff7b72;}
+.edit-toolbar button.danger:hover{background:rgba(207,34,46,.2);}
+.edit-toolbar .separator{width:1px;height:20px;background:rgba(255,255,255,.15);}
+.edit-toolbar .toolbar-status{
+  margin-left:auto;
+  display:flex;align-items:center;gap:6px;
+  color:#8b949e;
+}
+.edit-toolbar .status-dot{
+  width:8px;height:8px;border-radius:50%;
+}
+.edit-toolbar .status-dot.active{background:#3fb950;}
+.edit-toolbar .status-dot.inactive{background:#6e7681;}
+
+/* Editable element styles */
+[contenteditable="true"]{
+  outline:none;
+  transition:box-shadow 0.15s, background 0.15s;
+  border-radius:3px;
+}
+[contenteditable="true"]:hover{
+  box-shadow:0 0 0 2px rgba(9,105,218,.3);
+}
+[contenteditable="true"]:focus{
+  box-shadow:0 0 0 2px #0969da;
+  background:rgba(9,105,218,.04);
+}
+body.edit-mode [data-editable]{
+  cursor:text;
+  position:relative;
+}
+body.edit-mode [data-editable]::before{
+  content:'✏️';
+  position:absolute;
+  top:-2px;right:-2px;
+  font-size:10px;
+  opacity:0;
+  transition:opacity .15s;
+  pointer-events:none;
+  z-index:10;
+}
+body.edit-mode [data-editable]:hover::before{
+  opacity:.6;
+}
+/* Editable icon styles */
+body.edit-mode [data-editable-icon]{
+  cursor:pointer;
+  position:relative;
+  transition:all .15s;
+}
+body.edit-mode [data-editable-icon]:hover{
+  filter:brightness(0.9);
+  transform:scale(1.1);
+}
+body.edit-mode [data-editable-icon]::after{
+  content:'✏️';
+  position:absolute;
+  top:-6px;right:-6px;
+  font-size:10px;
+  opacity:0;
+  transition:opacity .15s;
+  pointer-events:none;
+  z-index:10;
+  background:#fff;
+  border-radius:50%;
+  width:16px;height:16px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+body.edit-mode [data-editable-icon]:hover::after{
+  opacity:1;
+}
+
+/* Avatar upload styles */
+.avatar-upload-overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:8px;
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  border-radius:50%;
+  cursor:pointer;
+  z-index:5;
+  transition:opacity .2s;
+}
+.avatar-upload-overlay svg{
+  width:32px;height:32px;fill:#fff;
+  opacity:.8;
+}
+body.edit-mode .avatar:hover .avatar-upload-overlay{
+  display:flex;
+}
+.avatar img{
+  width:100%;height:100%;
+  object-fit:cover;
+  border-radius:50%;
+  position:relative;
+  z-index:2;
+}
+.avatar-actions{
+  display:none;
+  position:absolute;
+  bottom:-8px;right:-8px;
+  z-index:10;
+  gap:4px;
+}
+body.edit-mode .avatar-actions.show{
+  display:flex;
+}
+.avatar-action-btn{
+  width:28px;height:28px;
+  border-radius:50%;
+  border:2px solid #fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+  transition:transform .15s;
+}
+.avatar-action-btn:hover{transform:scale(1.15);}
+.avatar-action-btn.delete-btn{background:#cf222e;color:#fff;}
+.avatar-action-btn.replace-btn{background:#0969da;color:#fff;}
+
+/* Icon picker modal */
+.icon-picker-modal{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#fff;
+  border-radius:12px;
+  padding:24px;
+  z-index:10001;
+  box-shadow:0 16px 48px rgba(0,0,0,.25);
+  display:none;
+  width:360px;
+  max-height:480px;
+}
+.icon-picker-modal.show{display:block;}
+.icon-picker-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.4);
+  z-index:10000;
+  display:none;
+}
+.icon-picker-overlay.show{display:block;}
+.icon-picker-title{
+  font-size:16px;font-weight:600;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.icon-picker-close{
+  width:28px;height:28px;
+  border:none;background:var(--bg-inset);
+  border-radius:50%;cursor:pointer;
+  font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.icon-picker-grid{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:4px;
+  max-height:300px;
+  overflow-y:auto;
+  margin-bottom:16px;
+}
+.icon-picker-item{
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:all .1s;
+}
+.icon-picker-item:hover{
+  background:var(--bg-accent);
+  transform:scale(1.2);
+}
+.icon-picker-custom{
+  display:flex;gap:8px;
+}
+.icon-picker-custom input{
+  flex:1;
+  padding:8px 12px;
+  border:1px solid var(--border-default);
+  border-radius:6px;
+  font-size:14px;
+  outline:none;
+}
+.icon-picker-custom input:focus{
+  border-color:var(--accent-fg);
+  box-shadow:0 0 0 2px rgba(9,105,218,.2);
+}
+.icon-picker-custom button{
+  padding:8px 16px;
+  background:var(--accent-fg);
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+}
+.icon-picker-custom button:hover{opacity:.9;}
+/* Tag editing */
+body.edit-mode .tag[data-editable]{
+  cursor:text;
+}
+body.edit-mode .tag[data-editable]:hover{
+  filter:brightness(0.95);
+}
+/* Tag add/delete buttons */
+.card-tags, .timeline-tags{
+  position:relative;
+}
+.tag-add-btn{
+  display:none;
+  width:22px;height:22px;
+  border-radius:50%;
+  border:1px dashed var(--border-default);
+  background:var(--bg-inset);
+  color:var(--fg-muted);
+  font-size:13px;
+  cursor:pointer;
+  align-items:center;justify-content:center;
+  transition:all .15s;
+  flex-shrink:0;
+  line-height:1;
+  padding:0;
+}
+.tag-add-btn:hover{
+  border-color:var(--accent-fg);
+  color:var(--accent-fg);
+  background:var(--bg-accent);
+}
+body.edit-mode .tag-add-btn{
+  display:inline-flex;
+}
+.tag-delete-btn{
+  display:none;
+  width:14px;height:14px;
+  border-radius:50%;
+  background:#cf222e;
+  color:#fff;
+  font-size:9px;
+  border:none;
+  cursor:pointer;
+  position:absolute;
+  top:-4px;right:-4px;
+  align-items:center;justify-content:center;
+  line-height:1;
+  padding:0;
+  z-index:5;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.tag-delete-btn:hover{
+  background:#a40e26;
+  transform:scale(1.15);
+}
+body.edit-mode .tag{
+  position:relative;
+}
+body.edit-mode .tag:hover .tag-delete-btn{
+  display:inline-flex;
+}
+/* Tag add modal */
+.tag-add-modal{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#fff;
+  border-radius:12px;
+  padding:20px 24px;
+  z-index:10003;
+  box-shadow:0 16px 48px rgba(0,0,0,.25);
+  display:none;
+  width:320px;
+}
+.tag-add-modal.show{display:block;}
+.tag-add-modal-title{
+  font-size:15px;font-weight:600;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tag-add-modal-close{
+  width:24px;height:24px;border:none;background:var(--bg-inset);
+  border-radius:50%;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tag-add-modal input{
+  width:100%;padding:8px 12px;
+  border:1px solid var(--border-default);
+  border-radius:6px;font-size:14px;outline:none;
+  margin-bottom:10px;
+}
+.tag-add-modal input:focus{
+  border-color:var(--accent-fg);
+  box-shadow:0 0 0 2px rgba(9,105,218,.2);
+}
+.tag-color-options{
+  display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;
+}
+.tag-color-opt{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:all .15s;
+  position:relative;
+}
+.tag-color-opt:hover,.tag-color-opt.selected{
+  transform:scale(1.2);
+  border-color:var(--fg-default);
+}
+.tag-color-opt.selected::after{
+  content:'✓';position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:11px;font-weight:700;
+}
+.tag-add-modal .tag-add-confirm{
+  width:100%;padding:8px 16px;
+  background:var(--accent-fg);color:#fff;
+  border:none;border-radius:6px;cursor:pointer;
+  font-size:13px;font-weight:500;
+}
+.tag-add-modal .tag-add-confirm:hover{opacity:.9;}
+
+/* Skill chip editing */
+body.edit-mode .skill-chip[data-editable]{
+  cursor:text;
+}
+/* Skill chip add/delete */
+.skill-bar-row{
+  position:relative;
+}
+.skill-add-btn{
+  display:none;
+  width:24px;height:24px;
+  border-radius:50%;
+  border:1px dashed var(--border-default);
+  background:var(--bg-inset);
+  color:var(--fg-muted);
+  font-size:14px;
+  cursor:pointer;
+  align-items:center;justify-content:center;
+  transition:all .15s;
+  flex-shrink:0;
+  line-height:1;
+  padding:0;
+}
+.skill-add-btn:hover{
+  border-color:var(--accent-fg);
+  color:var(--accent-fg);
+  background:var(--bg-accent);
+}
+body.edit-mode .skill-add-btn{
+  display:inline-flex;
+}
+.skill-chip{
+  position:relative;
+}
+.skill-delete-btn{
+  display:none;
+  width:14px;height:14px;
+  border-radius:50%;
+  background:#cf222e;
+  color:#fff;
+  font-size:9px;
+  border:none;
+  cursor:pointer;
+  position:absolute;
+  top:-5px;right:-5px;
+  align-items:center;justify-content:center;
+  line-height:1;
+  padding:0;
+  z-index:5;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.skill-delete-btn:hover{
+  background:#a40e26;transform:scale(1.15);
+}
+body.edit-mode .skill-chip:hover .skill-delete-btn{
+  display:inline-flex;
+}
+
+/* Section Index Nav */
+.section-index{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:32px;
+  padding:12px 16px;
+  background:var(--bg-overlay);
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  position:sticky;
+  top:44px;
+  z-index:100;
+}
+.section-index-item{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:500;
+  color:var(--fg-muted);
+  cursor:pointer;
+  transition:all .15s;
+  border:1px solid transparent;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.section-index-item:hover{
+  color:var(--accent-fg);
+  background:var(--bg-accent);
+  border-color:var(--accent-fg);
+}
+.section-index-item.active{
+  color:var(--accent-fg);
+  background:var(--bg-accent);
+  border-color:var(--accent-fg);
+  font-weight:600;
+}
+
+/* Draggable sections */
+.draggable-section{
+  position:relative;
+  margin-bottom:12px;
+  border-radius:var(--radius-md);
+  transition:outline .15s, background .15s;
+}
+body.edit-mode .draggable-section{
+  outline:2px dashed transparent;
+  outline-offset:4px;
+}
+body.edit-mode .draggable-section:hover{
+  outline-color:var(--border-default);
+}
+body.edit-mode .draggable-section.drag-over{
+  outline-color:var(--accent-fg);
+  background:rgba(9,105,218,.04);
+}
+body.edit-mode .draggable-section.dragging{
+  opacity:.5;
+  outline-color:var(--attention-fg);
+}
+.drag-handle{
+  display:none;
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:28px;height:28px;
+  border-radius:var(--radius-sm);
+  background:var(--bg-overlay);
+  border:1px solid var(--border-default);
+  cursor:grab;
+  z-index:10;
+  align-items:center;
+  justify-content:center;
+  color:var(--fg-muted);
+  font-size:14px;
+  box-shadow:var(--shadow-sm);
+  transition:all .15s;
+}
+.drag-handle:hover{
+  border-color:var(--accent-fg);
+  color:var(--accent-fg);
+  background:var(--bg-accent);
+}
+.drag-handle:active{cursor:grabbing;}
+body.edit-mode .draggable-section:hover .drag-handle{
+  display:flex;
+}
+
+/* Data num editing */
+body.edit-mode .data-num[data-editable]{
+  font-family:var(--font-mono);
+}
+
+/* Toast notification */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:#24292f;
+  color:#fff;
+  padding:10px 20px;
+  border-radius:8px;
+  font-size:13px;
+  z-index:10000;
+  opacity:0;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.toast.success{border-left:3px solid #3fb950;}
+.toast.info{border-left:3px solid #0969da;}
+
+/* ====== Layout: Sidebar + Main ====== */
+.layout{
+  display:flex;
+  min-height:100vh;
+  padding-top:48px; /* toolbar offset */
+}
+.sidebar{
+  width:340px;
+  min-width:340px;
+  background:var(--bg-overlay);
+  border-right:1px solid var(--border-default);
+  padding:32px 24px;
+  position:sticky;
+  top:48px;
+  height:calc(100vh - 48px);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+.main{
+  flex:1;
+  padding:32px 48px;
+  max-width:960px;
+}
+
+/* ====== Sidebar ====== */
+.avatar{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--bg-success),var(--bg-accent));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 16px;
+  font-size:40px;
+  border:4px solid #ffffff;
+  box-shadow:0 0 0 2px var(--border-default),0 4px 12px rgba(0,0,0,.1);
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.avatar::after{
+  content:none;
+}
+.avatar .avatar-placeholder{
+  font-family:var(--font-body);
+  font-size:12px;
+  font-weight:500;
+  color:var(--fg-subtle);
+  text-align:center;
+  line-height:1.3;
+  padding:8px;
+  pointer-events:none;
+}
+.avatar.has-image .avatar-placeholder{
+  display:none;
+}
+.sidebar h1{
+  font-size:var(--font-size-xl);
+  font-weight:700;
+  text-align:center;
+  margin-bottom:2px;
+}
+.sidebar .username{
+  font-size:var(--font-size-md);
+  color:var(--fg-muted);
+  text-align:center;
+  font-weight:400;
+  margin-bottom:12px;
+}
+.sidebar .bio{
+  font-size:var(--font-size-base);
+  color:var(--fg-default);
+  text-align:center;
+  margin-bottom:16px;
+  line-height:1.6;
+}
+.sidebar .follow-btn{
+  display:block;
+  width:100%;
+  padding:7px 16px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  background:var(--bg-overlay);
+  color:var(--fg-default);
+  font-size:var(--font-size-base);
+  font-weight:500;
+  text-align:center;
+  cursor:pointer;
+  margin-bottom:16px;
+  transition:background var(--transition);
+}
+.sidebar .follow-btn:hover{background:var(--bg-inset);}
+
+/* Meta items */
+.meta-list{
+  list-style:none;
+  margin-bottom:20px;
+  font-size:var(--font-size-base);
+}
+.meta-list li{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+  color:var(--fg-muted);
+}
+.meta-list li svg{width:16px;height:16px;fill:currentColor;flex-shrink:0;}
+.meta-list a{color:var(--accent-fg);text-decoration:none;}
+.meta-list a:hover{text-decoration:underline;}
+
+/* Highlights */
+.highlights-title{
+  font-size:var(--font-size-base);
+  font-weight:600;
+  margin-bottom:8px;
+  color:var(--fg-default);
+}
+.highlight-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+  margin-bottom:6px;
+}
+.highlight-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.highlight-dot.green{background:var(--success-fg);}
+.highlight-dot.pink{background:#bf3989;}
+.highlight-dot.blue{background:var(--accent-fg);}
+.highlight-dot.purple{background:var(--done-fg);}
+.highlight-dot.orange{background:var(--attention-fg);}
+
+/* ====== Main Content ====== */
+.section-heading{
+  font-size:var(--font-size-lg);
+  font-weight:600;
+  margin-bottom:4px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-heading svg{width:20px;height:20px;fill:var(--fg-muted);}
+.section-desc{
+  font-size:var(--font-size-base);
+  color:var(--fg-muted);
+  margin-bottom:20px;
+}
+
+/* Pinned repos / Project cards */
+.pinned-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:48px;
+}
+.project-card{
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  padding:16px;
+  background:var(--bg-overlay);
+  transition:border-color var(--transition),box-shadow var(--transition);
+  cursor:pointer;
+  position:relative;
+}
+.project-card:hover{
+  border-color:var(--accent-fg);
+  box-shadow:var(--shadow-md);
+}
+.project-card .card-top{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:8px;
+}
+.project-card .card-top svg{width:16px;height:16px;fill:var(--fg-muted);}
+.project-card .card-title{
+  font-size:var(--font-size-base);
+  font-weight:600;
+  color:var(--accent-fg);
+  text-decoration:none;
+}
+.project-card .card-title:hover{text-decoration:underline;}
+.project-card .card-desc{
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+  margin-bottom:12px;
+  line-height:1.5;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.project-card .card-meta{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+}
+.project-card .lang-dot{
+  width:12px;height:12px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:4px;
+  position:relative;top:1px;
+}
+.project-card .card-meta-item{
+  display:flex;
+  align-items:center;
+  gap:3px;
+}
+.project-card .card-meta-item svg{width:14px;height:14px;fill:currentColor;}
+.project-card .card-tags{
+  display:flex;gap:4px;flex-wrap:wrap;margin-top:10px;
+}
+.tag{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:500;
+}
+.tag-green{background:var(--bg-success);color:var(--success-fg);}
+.tag-blue{background:var(--bg-accent);color:var(--accent-fg);}
+.tag-pink{background:var(--bg-danger);color:var(--danger-fg);}
+.tag-purple{background:#fbefff;color:var(--done-fg);}
+.tag-orange{background:#fff8c5;color:var(--attention-fg);}
+.tag-gray{background:var(--bg-inset);color:var(--fg-muted);}
+
+/* Data bar */
+.data-bar{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-top:8px;
+  padding-top:10px;
+  border-top:1px solid var(--border-muted);
+}
+.data-item{
+  text-align:center;
+}
+.data-item .data-num{
+  font-size:18px;
+  font-weight:700;
+  color:var(--fg-default);
+  line-height:1;
+}
+.data-item .data-label{
+  font-size:10px;
+  color:var(--fg-muted);
+  margin-top:2px;
+}
+
+/* ====== Interests / Topics ====== */
+.topics-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:48px;
+}
+.topic-card{
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  padding:20px 16px;
+  text-align:center;
+  background:var(--bg-overlay);
+  transition:border-color var(--transition),transform var(--transition);
+  cursor:pointer;
+}
+.topic-card:hover{
+  border-color:var(--accent-fg);
+  transform:translateY(-2px);
+}
+.topic-icon{
+  width:48px;height:48px;
+  border-radius:var(--radius-sm);
+  background:var(--bg-inset);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;
+  font-size:22px;
+}
+.topic-name{
+  font-size:var(--font-size-base);
+  font-weight:600;
+  margin-bottom:2px;
+}
+.topic-desc{
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+}
+
+/* ====== Timeline / Experience ====== */
+.timeline{
+  position:relative;
+  margin-bottom:48px;
+}
+.timeline::before{
+  content:'';
+  position:absolute;
+  left:16px;top:0;bottom:0;
+  width:2px;
+  background:var(--border-default);
+}
+.timeline-item{
+  position:relative;
+  padding-left:44px;
+  padding-bottom:28px;
+}
+.timeline-item:last-child{padding-bottom:0;}
+.timeline-dot{
+  position:absolute;
+  left:10px;top:4px;
+  width:14px;height:14px;
+  border-radius:50%;
+  border:2px solid var(--accent-fg);
+  background:var(--bg-overlay);
+}
+.timeline-dot.green{border-color:var(--success-fg);}
+.timeline-dot.pink{border-color:#bf3989;}
+.timeline-dot.purple{border-color:var(--done-fg);}
+.timeline-dot.orange{border-color:var(--attention-fg);}
+.timeline-period{
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+  margin-bottom:2px;
+}
+.timeline-company{
+  font-size:var(--font-size-md);
+  font-weight:600;
+}
+.timeline-role{
+  font-size:var(--font-size-base);
+  color:var(--fg-default);
+  margin-bottom:6px;
+}
+.timeline-bullets{
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+  line-height:1.7;
+  padding-left:18px;
+}
+.timeline-bullets li{margin-bottom:2px;}
+.timeline-bullets strong{color:var(--fg-default);font-weight:600;}
+.timeline-tags{
+  display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;
+}
+
+/* ====== Awards ====== */
+.awards-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:48px;
+}
+.award-card{
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  background:var(--bg-overlay);
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+}
+.award-icon{
+  width:36px;height:36px;
+  border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.award-icon.gold{background:#fff8c5;}
+.award-icon.silver{background:var(--bg-inset);}
+.award-icon.blue{background:var(--bg-accent);}
+.award-icon.green{background:var(--bg-success);}
+.award-icon.pink{background:var(--bg-danger);}
+.award-title{
+  font-size:var(--font-size-base);
+  font-weight:600;
+  line-height:1.3;
+}
+.award-sub{
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+}
+
+/* ====== Skills bar ====== */
+.skills-section{
+  margin-bottom:48px;
+}
+.skill-group{
+  margin-bottom:16px;
+}
+.skill-group-title{
+  font-size:var(--font-size-sm);
+  font-weight:600;
+  color:var(--fg-muted);
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.skill-bar-row{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-bottom:6px;
+}
+.skill-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:var(--font-size-sm);
+  font-weight:500;
+  background:var(--bg-inset);
+  color:var(--fg-default);
+  border:1px solid var(--border-muted);
+  transition:all var(--transition);
+}
+.skill-chip:hover{
+  background:var(--bg-overlay);
+  border-color:var(--accent-fg);
+  color:var(--accent-fg);
+}
+.skill-chip svg{width:14px;height:14px;fill:currentColor;}
+
+/* ====== Footer ====== */
+.footer{
+  border-top:1px solid var(--border-default);
+  padding:24px 0;
+  text-align:center;
+  font-size:var(--font-size-sm);
+  color:var(--fg-muted);
+}
+.footer a{color:var(--accent-fg);text-decoration:none;}
+.footer a:hover{text-decoration:underline;}
+
+/* ====== Responsive ====== */
+@media(max-width:1100px){
+  .layout{flex-direction:column;}
+  .sidebar{
+    width:100%;min-width:unset;
+    position:relative;height:auto;
+    top:48px;
+    border-right:none;
+    border-bottom:1px solid var(--border-default);
+    padding:24px;
+  }
+  .avatar{width:160px;height:160px;}
+  .main{padding:24px;max-width:100%;}
+  .pinned-grid{grid-template-columns:1fr;}
+  .topics-grid{grid-template-columns:repeat(2,1fr);}
+  .awards-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .topics-grid{grid-template-columns:1fr 1fr;}
+  .main{padding:16px;}
+}
+
+/* Link indicator */
+[data-editable][data-href]{
+  cursor:pointer;
+  text-decoration:underline;
+  text-decoration-style:dotted;
+  text-underline-offset:3px;
+  text-decoration-color:var(--accent-fg);
+}
+body:not(.edit-mode) [data-editable][data-href]{
+  cursor:pointer;
+  text-decoration-style:solid;
+}
+body:not(.edit-mode) [data-editable][data-href]:hover{
+  color:var(--accent-fg);
+}
+/* Link editor tooltip */
+.link-editor{
+  position:fixed;
+  background:#fff;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-md);
+  padding:10px 14px;
+  z-index:10004;
+  box-shadow:var(--shadow-lg);
+  display:none;
+  gap:8px;
+  align-items:center;
+  min-width:280px;
+}
+.link-editor.show{display:flex;}
+.link-editor input{
+  flex:1;
+  padding:6px 10px;
+  border:1px solid var(--border-default);
+  border-radius:var(--radius-sm);
+  font-size:13px;
+  outline:none;
+  min-width:0;
+}
+.link-editor input:focus{
+  border-color:var(--accent-fg);
+  box-shadow:0 0 0 2px rgba(9,105,218,.2);
+}
+.link-editor button{
+  padding:5px 12px;
+  border-radius:var(--radius-sm);
+  border:none;
+  font-size:12px;
+  cursor:pointer;
+  font-weight:500;
+  white-space:nowrap;
+}
+.link-editor .link-save{
+  background:var(--accent-fg);color:#fff;
+}
+.link-editor .link-save:hover{opacity:.9;}
+.link-editor .link-remove{
+  background:var(--bg-danger);color:var(--danger-fg);
+}
+.link-editor .link-remove:hover{opacity:.85;}
+.link-editor .link-close{
+  background:var(--bg-inset);color:var(--fg-muted);
+}
+.link-editor .link-close:hover{color:var(--fg-default);}
+/* link icon hint */
+.link-hint-icon{
+  display:inline-block;
+  width:12px;height:12px;
+  margin-left:3px;
+  vertical-align:middle;
+  opacity:.5;
+}
+body:not(.edit-mode) .link-hint-icon{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ====== EDIT TOOLBAR ====== -->
+<div class="edit-toolbar" id="editToolbar">
+  <div class="toolbar-brand">
+    ✏️ <span>可编辑</span>
+  </div>
+  <div class="separator"></div>
+  <button id="btnToggleEdit" class="primary">编辑模式：开启</button>
+  <button id="btnExportHTML">导出 HTML</button>
+  <button id="btnExportPDF">导出 PDF（打印）</button>
+  <div class="separator"></div>
+  <button id="btnReset" class="danger">重置修改</button>
+  <div class="toolbar-status">
+    <span class="status-dot active" id="statusDot"></span>
+    <span id="statusText">点击文字即可编辑</span>
+  </div>
+</div>
+
+<!-- ====== TOAST ====== -->
+<div class="toast" id="toast"></div>
+
+<div class="layout">
+
+  <!-- ========== LEFT SIDEBAR ========== -->
+  <aside class="sidebar">
+    <div class="avatar" id="avatarContainer">
+      <div class="avatar-placeholder">点击上传形象照</div>
+      <div class="avatar-upload-overlay" id="avatarOverlay">
+        <svg viewBox="0 0 16 16"><path d="M7.942 0a7.942 7.942 0 00-5.609 13.562L.585 15.31a.19.19 0 00.133.326l7.224-.001A7.942 7.942 0 007.942 0zm-1.35 9.3a.75.75 0 110-1.5.75.75 0 010 1.5zm2.7 0a.75.75 0 110-1.5.75.75 0 010 1.5zm2.7 0a.75.75 0 110-1.5.75.75 0 010 1.5z"/></svg>
+        点击上传形象照
+      </div>
+      <div class="avatar-actions" id="avatarActions">
+        <div class="avatar-action-btn replace-btn" id="avatarReplace" title="更换头像">📷</div>
+        <div class="avatar-action-btn delete-btn" id="avatarDelete" title="删除头像">✕</div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+    </div>
+
+    <h1 data-editable>唐一丹</h1>
+    <div class="username" data-editable>yidantang</div>
+    <div class="bio" data-editable>人大新闻系 · 内容运营 × 产品增长 × 海外传播<br>小红书/抖音/快手/TikTok多平台实战<br>用数据驱动增长，用内容连接用户</div>
+    <button class="follow-btn" onclick="alert('感谢关注！')">Follow</button>
+
+    <ul class="meta-list">
+      <li>
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <a href="#" data-editable>@yidantang</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 16 16"><path d="M7.942 0a7.942 7.942 0 00-5.609 13.562L.585 15.31a.19.19 0 00.133.326l7.224-.001A7.942 7.942 0 007.942 0zm-1.35 9.3a.75.75 0 110-1.5.75.75 0 010 1.5zm2.7 0a.75.75 0 110-1.5.75.75 0 010 1.5zm2.7 0a.75.75 0 110-1.5.75.75 0 010 1.5z"/></svg>
+        <span data-editable>北京，中国</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 16 16"><path d="M1.5 8a6.5 6.5 0 0110.65-5.003.75.75 0 00.959-1.153 8 8 0 102.592 8.33.75.75 0 10-1.444-.407A6.5 6.5 0 011.5 8z"/><path d="M12.25 8a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H13a.75.75 0 01-.75-.75z"/></svg>
+        <span data-editable>中国人民大学</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 16 16"><path d="M1.75 2A1.75 1.75 0 000 3.75v.736a.75.75 0 000 .027v7.737C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0016 12.25v-8.5A1.75 1.75 0 0014.25 2H1.75zM14.5 6.5v5.75a.25.25 0 01-.25.25H1.75a.25.25 0 01-.25-.25V6.5h13z"/></svg>
+        <span data-editable>yidantang@ruc.edu.cn</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 16 16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0114.25 16H1.75A1.75 1.75 0 010 14.25V1.75zM1.75 1.5a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V1.75a.25.25 0 00-.25-.25H1.75zM8 10a2 2 0 100-4 2 2 0 000 4z"/></svg>
+        <span data-editable>185 8019 9491</span>
+      </li>
+    </ul>
+
+    <div style="margin-top:auto;">
+      <div class="highlights-title">Highlights</div>
+      <div class="highlight-item"><span class="highlight-dot green"></span> <span data-editable>中共党员</span></div>
+      <div class="highlight-item"><span class="highlight-dot blue"></span> <span data-editable>专业第三保研</span></div>
+      <div class="highlight-item"><span class="highlight-dot purple"></span> <span data-editable>GPA 3.93/4.0</span></div>
+      <div class="highlight-item"><span class="highlight-dot pink"></span> <span data-editable>高考英语 148</span></div>
+      <div class="highlight-item"><span class="highlight-dot orange"></span> <span data-editable>公派留学菲律宾</span></div>
+    </div>
+  </aside>
+
+  <!-- ========== RIGHT MAIN CONTENT ========== -->
+  <main class="main">
+
+    <!-- Section Index Nav -->
+    <nav class="section-index" id="sectionIndex"></nav>
+
+    <!-- Pinned Projects -->
+    <div class="draggable-section" data-section="pinned" data-section-label="核心经历">
+    <div class="section-heading">
+      <svg viewBox="0 0 16 16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75z"/></svg>
+      Pinned
+    </div>
+    <div class="section-desc" data-editable>核心项目经历 — 从达人运营到产品增长的全链路实战</div>
+
+    <div class="pinned-grid">
+      <!-- 腾讯元宝 -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>tencent-yuanbao</a>
+        </div>
+        <div class="card-desc" data-editable>元宝用户增长实习生 — AI产品在小红书的冷启动与心智建设。将技术参数转化为场景化卖点，主导爆款笔记50+篇，单篇最高曝光100w+</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#009944;"></span><span data-editable>用户增长</span></span>
+          <span class="card-meta-item">
+            <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+            <span data-editable>40%</span>
+          </span>
+          <span class="card-meta-item">
+            <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm1.5 11.25a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zm.25-7.5a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z"/></svg>
+            <span data-editable>37.5%</span>
+          </span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-green" data-editable>心智种草<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-blue" data-editable>内容模型<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-orange" data-editable>人群运营<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+        <div class="data-bar">
+          <div class="data-item"><div class="data-num" data-editable>25%→40%</div><div class="data-label" data-editable>千赞率</div></div>
+          <div class="data-item"><div class="data-num" data-editable>30%→45%</div><div class="data-label" data-editable>TI人群</div></div>
+          <div class="data-item"><div class="data-num" data-editable>50+</div><div class="data-label" data-editable>爆款笔记</div></div>
+        </div>
+      </div>
+
+      <!-- TikTok -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>tiktok-pgc-ops</a>
+        </div>
+        <div class="card-desc" data-editable>PGC产品运营 — 创作者生态三维策略+标杆引入(何同学单条100w+播放)+Creator Academy产品优化</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#E6005C;"></span><span data-editable>产品运营</span></span>
+          <span class="card-meta-item">
+            <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+            <span data-editable>50%</span>
+          </span>
+          <span class="card-meta-item">
+            <svg viewBox="0 0 16 16"><path d="M1.5 8a6.5 6.5 0 0110.65-5.003.75.75 0 00.959-1.153 8 8 0 102.592 8.33.75.75 0 10-1.444-.407A6.5 6.5 0 011.5 8z"/></svg>
+            <span data-editable>+26.8%</span>
+          </span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-pink" data-editable>创作者生态<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-blue" data-editable>产品优化<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>跨平台<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+        <div class="data-bar">
+          <div class="data-item"><div class="data-num" data-editable>+50%</div><div class="data-label" data-editable>3x winner</div></div>
+          <div class="data-item"><div class="data-num" data-editable>+4%</div><div class="data-label" data-editable>满意度环比</div></div>
+          <div class="data-item"><div class="data-num" data-editable>912万</div><div class="data-label" data-editable>Q3月活</div></div>
+        </div>
+      </div>
+
+      <!-- 快手 -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>kuaishou-digital-ops</a>
+        </div>
+        <div class="card-desc" data-editable>高新数码垂类运营 — 垂类消费诊断与归因分析+热点商业化流量策略+创作者分层与范式沉淀，新增爆款内容+12%</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#FF6600;"></span><span data-editable>垂类运营</span></span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-orange" data-editable>归因分析<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-green" data-editable>创作者分层<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <!-- 抖音 -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>douyin-brand-pr</a>
+        </div>
+        <div class="card-desc" data-editable>公共关系部品牌策划 — 「有知识有价值」项目，院士涨粉300w+，刘嘉麒院士成全网最高粉丝院士IP，三联10w+爆款</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#bf3989;"></span><span data-editable>品牌策划</span></span>
+          <span class="card-meta-item">
+            <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+            <span data-editable>300w+</span>
+          </span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-pink" data-editable>品牌策划<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>知识IP<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-blue" data-editable>公共关系<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+        <div class="data-bar">
+          <div class="data-item"><div class="data-num" data-editable>300w+</div><div class="data-label" data-editable>院士涨粉</div></div>
+          <div class="data-item"><div class="data-num" data-editable>10w+</div><div class="data-label" data-editable>三联增粉</div></div>
+        </div>
+      </div>
+
+      <!-- 环球网 -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>huanqiu-overseas</a>
+        </div>
+        <div class="card-desc" data-editable>海外社媒运营 — Facebook/X双平台内容策划+视觉设计+中英双语翻译，独立产出20+贴文</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#1a7f37;"></span><span data-editable>海外运营</span></span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-blue" data-editable>海外社媒<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>跨文化<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-green" data-editable>双语翻译<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <!-- AGUA品牌 -->
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>agua-brand</a>
+          <span style="margin-left:auto;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg-accent);color:var(--accent-fg);font-weight:500;">Brand</span>
+        </div>
+        <div class="card-desc" data-editable>AGUA服饰品牌策划 — 以「水」为灵感，定位分析与产品线规划（CORE/FLOW/AURA三条线）</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#0094B8;"></span><span data-editable>品牌策划</span></span>
+        </div>
+        <div class="card-tags">
+          <span class="tag tag-blue" data-editable>品牌定位<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-green" data-editable>产品线规划<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>东方美学<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: pinned -->
+
+    <!-- Topics / Interests -->
+    <div class="draggable-section" data-section="topics" data-section-label="兴趣领域">
+    <div style="margin-top:48px;">
+      <div class="section-heading">
+        <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 14.5a6.5 6.5 0 110-13 6.5 6.5 0 010 13zM6 11.5a.75.75 0 01-.75-.75v-6a.75.75 0 011.5 0v6a.75.75 0 01-.75.75zm4 0a.75.75 0 01-.75-.75v-6a.75.75 0 011.5 0v6a.75.75 0 01-.75.75z"/></svg>
+        兴趣领域
+      </div>
+      <div class="section-desc" data-editable>深耕的赛道与研究方向</div>
+      <div class="topics-grid">
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>📱</div>
+          <div class="topic-name" data-editable>内容运营</div>
+          <div class="topic-desc" data-editable>多平台内容策略与增长</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>🎯</div>
+          <div class="topic-name" data-editable>达人运营</div>
+          <div class="topic-desc" data-editable>KOL筛选与共创策划</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>📊</div>
+          <div class="topic-name" data-editable>数据驱动</div>
+          <div class="topic-desc" data-editable>内容数据复盘与优化</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>🎨</div>
+          <div class="topic-name" data-editable>品牌策划</div>
+          <div class="topic-desc" data-editable>IP打造与跨界合作</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>🌏</div>
+          <div class="topic-name" data-editable>国际传播</div>
+          <div class="topic-desc" data-editable>跨文化内容与海外运营</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>🧠</div>
+          <div class="topic-name" data-editable>产品思维</div>
+          <div class="topic-desc" data-editable>用户洞察与需求挖掘</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>🎮</div>
+          <div class="topic-name" data-editable>数字文化</div>
+          <div class="topic-desc" data-editable>游戏与亲子共玩研究</div>
+        </div>
+        <div class="topic-card">
+          <div class="topic-icon" data-editable-icon>✍️</div>
+          <div class="topic-name" data-editable>数据新闻</div>
+          <div class="topic-desc" data-editable>数据可视化与深度报道</div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: topics -->
+
+    <!-- Experience Timeline -->
+    <div class="draggable-section" data-section="timeline" data-section-label="经历时间线">
+    <div class="section-heading">
+      <svg viewBox="0 0 16 16"><path d="M1.705 8.005a.75.75 0 01.834.656 5.5 5.5 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.002 7.002 0 011.05 8.84a.75.75 0 01.656-.834zM8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.002 7.002 0 0114.95 7.16a.75.75 0 01-1.49.217A5.5 5.5 0 008 2.5z"/></svg>
+      经历时间线
+    </div>
+    <div class="section-desc" data-editable>实习与项目全历程</div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-period" data-editable>2026.03 — 2026.06</div>
+        <div class="timeline-company" data-editable>腾讯元宝</div>
+        <div class="timeline-role" data-editable>GSIG · 元宝用户增长实习生</div>
+        <ul class="timeline-bullets">
+          <li data-editable>产品卖点翻译与心智种草：将AI产品技术参数转化为场景化卖点，主导爆款笔记50+篇，单篇最高曝光100w+</li>
+          <li data-editable>人群资产运营：精细化人群标签管理及运营投放，TI人群占比从30%提升至45%</li>
+          <li data-editable>内容模型优化：迭代标题/hook/内容风格和场景，学习垂类千赞率从25%提升至40%</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-green" data-editable>心智种草<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-blue" data-editable>人群运营<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-period" data-editable>2025.10 — 2026.03</div>
+        <div class="timeline-company" data-editable>菲律宾 · 公派留学</div>
+        <div class="timeline-role" data-editable>中宣部 × 海外央企联合选拔</div>
+        <ul class="timeline-bullets">
+          <li data-editable>公派赴菲律宾5个月，深入了解菲律宾及东南亚国别特色与公司项目运作</li>
+          <li data-editable>挖掘海外一线员工事迹进行图文/视频/海报宣传，熟悉TikTok/Youtube/Instagram海外社媒</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-purple" data-editable>国际传播<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot pink"></div>
+        <div class="timeline-period" data-editable>2025.04 — 2025.09</div>
+        <div class="timeline-company" data-editable>TikTok</div>
+        <div class="timeline-role" data-editable>PGC · 产品运营实习生</div>
+        <ul class="timeline-bullets">
+          <li data-editable>创作者生态运营：流量激励×现金扶持×案例透传三维策略，3x现金奖励创作者占比提升50%</li>
+          <li data-editable>标杆创作者引入：推动何同学等国内优质创作者入驻，何同学单条播放突破100w+</li>
+          <li data-editable>Creator Academy产品优化：满意度环比+4%，Q3月活719万→912万(+26.8%)</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-pink" data-editable>创作者生态<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-blue" data-editable>产品优化<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot orange"></div>
+        <div class="timeline-period" data-editable>2025.01 — 2025.04</div>
+        <div class="timeline-company" data-editable>快手主站</div>
+        <div class="timeline-role" data-editable>高新数码 · 垂类运营实习生</div>
+        <ul class="timeline-bullets">
+          <li data-editable>垂类消费诊断与归因分析：多维度下钻分析定位内容供给短板，双轨促产策略推动消费渗透率回升</li>
+          <li data-editable>热点商业化：借势苹果/华为发布会等数码热点，新增爆款内容+12%，垂类用户归因量+8%</li>
+          <li data-editable>创作者分层运营：建立分层体系+爆款SOP，对不同梯队定向赋能，实现声量结构性提升</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-orange" data-editable>归因分析<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-green" data-editable>创作者分层<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot purple"></div>
+        <div class="timeline-period" data-editable>2024.04 — 2024.07</div>
+        <div class="timeline-company" data-editable>抖音</div>
+        <div class="timeline-role" data-editable>公共关系部 · 品牌策划实习生</div>
+        <ul class="timeline-bullets">
+          <li data-editable>高端创作者孵化：负责高知群体全生命周期运营，「学术通俗化」改编+矩阵分发，项目创作者涨粉300w+</li>
+          <li data-editable>刘嘉麒院士成全网最高粉丝院士IP（「火山爷爷」），树立平台权威心智</li>
+          <li data-editable>整合营销：参与2024抖音科学夜，跨端联动；三联生活周刊10w+爆款推文，强化「有知识有价值」品牌</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-pink" data-editable>品牌策划<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>知识IP<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-period" data-editable>2023.12 — 2024.03</div>
+        <div class="timeline-company" data-editable>环球网</div>
+        <div class="timeline-role" data-editable>海外社媒运营实习生</div>
+        <ul class="timeline-bullets">
+          <li data-editable>负责Facebook/X双平台内容策划与创意产出，独立产出20+贴文</li>
+          <li data-editable>主导视觉内容生产（海报/视频/字幕翻译），提升官方账号国际传播力</li>
+          <li data-editable>中英双语内容翻译与润色，确保跨文化传播的准确性与本地化</li>
+        </ul>
+        <div class="timeline-tags">
+          <span class="tag tag-blue" data-editable>海外社媒<button class="tag-delete-btn">×</button></span>
+          <span class="tag tag-purple" data-editable>跨文化<button class="tag-delete-btn">×</button></span>
+          <button class="tag-add-btn">+</button>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: timeline -->
+
+    <!-- Awards -->
+    <div class="draggable-section" data-section="awards" data-section-label="奖项荣誉">
+    <div class="section-heading">
+      <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+      奖项荣誉
+    </div>
+    <div class="section-desc" data-editable>学术与专业认可</div>
+
+    <div class="awards-grid">
+      <div class="award-card">
+        <div class="award-icon gold" data-editable-icon>🏆</div>
+        <div>
+          <div class="award-title" data-editable>中国数据内容年度案例</div>
+          <div class="award-sub" data-editable>2024 · RUC新闻坊作品入选</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon gold" data-editable-icon>🥇</div>
+        <div>
+          <div class="award-title" data-editable>大学新闻奖金奖</div>
+          <div class="award-sub" data-editable>2024 · 数据新闻类别</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon gold" data-editable-icon>🏅</div>
+        <div>
+          <div class="award-title" data-editable>创新杯一等奖</div>
+          <div class="award-sub" data-editable>中国人民大学第24届</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon silver" data-editable-icon>🥈</div>
+        <div>
+          <div class="award-title" data-editable>全国大学生英语翻译大赛二等奖</div>
+          <div class="award-sub" data-editable>跨媒体大赛二等奖 · B站互动300+</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon blue" data-editable-icon>📜</div>
+        <div>
+          <div class="award-title" data-editable>研究生二等奖学金</div>
+          <div class="award-sub" data-editable>中国人民大学</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon green" data-editable-icon>📖</div>
+        <div>
+          <div class="award-title" data-editable>三好学生 / 优秀学生干部</div>
+          <div class="award-sub" data-editable>澎湃月度好文 ×3 · 《大学生》杂志刊登 ×2</div>
+        </div>
+      </div>
+      <div class="award-card">
+        <div class="award-icon pink" data-editable-icon>🎓</div>
+        <div>
+          <div class="award-title" data-editable>专业第三保研 / GPA 3.93</div>
+          <div class="award-sub" data-editable>本科专业第三 / 硕士年级前列</div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: awards -->
+
+    <!-- Campus -->
+    <div class="draggable-section" data-section="campus" data-section-label="在校经历">
+    <div class="section-heading">
+      <svg viewBox="0 0 16 16"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75V1.75z"/></svg>
+      在校经历
+    </div>
+    <div class="section-desc" data-editable>校园里的深度实践</div>
+
+    <div class="pinned-grid" style="margin-bottom:48px;">
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>ruc-newsroom</a>
+        </div>
+        <div class="card-desc" data-editable>RUC新闻坊数据新闻编辑 — 产出25篇作品，累积阅读量超18w+，公众号涨粉6w+</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#1a7f37;"></span><span data-editable>数据新闻</span></span>
+        </div>
+        <div class="data-bar">
+          <div class="data-item"><div class="data-num" data-editable>25</div><div class="data-label" data-editable>篇作品</div></div>
+          <div class="data-item"><div class="data-num" data-editable>18w+</div><div class="data-label" data-editable>阅读量</div></div>
+          <div class="data-item"><div class="data-num" data-editable>6w+</div><div class="data-label" data-editable>涨粉</div></div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="card-top">
+          <svg viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9z"/></svg>
+          <a class="card-title" data-editable>baba-miao-xhs</a>
+        </div>
+        <div class="card-desc" data-editable>小红书「吧吧喵」个人账号 — 从0到1孵化学习/教育/求职类账号，粉丝突破500+，单篇最高赞2w+，总阅读200w+</div>
+        <div class="card-meta">
+          <span class="card-meta-item"><span class="lang-dot" style="background:#E6005C;"></span><span data-editable>账号运营</span></span>
+        </div>
+        <div class="data-bar">
+          <div class="data-item"><div class="data-num" data-editable>500+</div><div class="data-label" data-editable>粉丝</div></div>
+          <div class="data-item"><div class="data-num" data-editable>2w+</div><div class="data-label" data-editable>单篇最高赞</div></div>
+          <div class="data-item"><div class="data-num" data-editable>200w+</div><div class="data-label" data-editable>总阅读</div></div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: campus -->
+
+    <!-- Skills -->
+    <div class="draggable-section" data-section="skills" data-section-label="技能工具箱">
+    <div class="skills-section">
+      <div class="section-heading">
+        <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.78 7.22l-4 4a.75.75 0 01-1.06 0l-2-2a.75.75 0 011.06-1.06L7 9.94l3.47-3.47a.75.75 0 111.06 1.06z"/></svg>
+        技能工具箱
+      </div>
+      <div class="section-desc" data-editable>日常使用的工具与能力</div>
+
+      <div class="skill-group">
+        <div class="skill-group-title" data-editable>内容工具</div>
+        <div class="skill-bar-row">
+          <span class="skill-chip" data-editable>秀米<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>Canva<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>CapCut<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>PS<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>PR<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>AI<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>Notion<button class="skill-delete-btn">×</button></span>
+          <button class="skill-add-btn">+</button>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title" data-editable>数据分析</div>
+        <div class="skill-bar-row">
+          <span class="skill-chip" data-editable>Office<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>SPSS<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>Excel<button class="skill-delete-btn">×</button></span>
+          <button class="skill-add-btn">+</button>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title" data-editable>AI工具</div>
+        <div class="skill-bar-row">
+          <span class="skill-chip" data-editable>GPT<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>Claude<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>WorkBuddy<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>Codex<button class="skill-delete-btn">×</button></span>
+          <button class="skill-add-btn">+</button>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title" data-editable>语言能力</div>
+        <div class="skill-bar-row">
+          <span class="skill-chip" data-editable>CET-6 588<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>专四<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>雅思 7.0<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>西班牙语<button class="skill-delete-btn">×</button></span>
+          <span class="skill-chip" data-editable>高考英语 148<button class="skill-delete-btn">×</button></span>
+          <button class="skill-add-btn">+</button>
+        </div>
+      </div>
+    </div>
+    </div><!-- /draggable-section: skills -->
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>© 2026 唐一丹 · Built with <a href="#">GitHub Personal Website</a> style</p>
+      <p style="margin-top:4px;">Make it happen.</p>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ====== Edit Mode Engine ======
+(function(){
+  let editMode = true;
+  const toolbar = document.getElementById('editToolbar');
+  const btnToggle = document.getElementById('btnToggleEdit');
+  const btnExportHTML = document.getElementById('btnExportHTML');
+  const btnExportPDF = document.getElementById('btnExportPDF');
+  const btnReset = document.getElementById('btnReset');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const toast = document.getElementById('toast');
+
+  // Original content snapshot for reset
+  const originalHTML = document.querySelector('.layout').innerHTML;
+
+  function showToast(msg, type='info'){
+    toast.textContent = msg;
+    toast.className = 'toast ' + type + ' show';
+    setTimeout(()=>{ toast.className = 'toast'; }, 2500);
+  }
+
+  function toggleEditMode(){
+    editMode = !editMode;
+    document.body.classList.toggle('edit-mode', editMode);
+    const editables = document.querySelectorAll('[data-editable]');
+    editables.forEach(el => {
+      el.contentEditable = editMode ? 'true' : 'false';
+    });
+    btnToggle.textContent = editMode ? '编辑模式：开启' : '编辑模式：关闭';
+    btnToggle.className = editMode ? 'primary' : '';
+    statusDot.className = 'status-dot ' + (editMode ? 'active' : 'inactive');
+    statusText.textContent = editMode ? '点击文字/图标即可编辑' : '只读模式';
+    showToast(editMode ? '已开启编辑模式' : '已关闭编辑模式', 'info');
+  }
+
+  function exportHTML(){
+    const clone = document.cloneNode(true);
+    const tb = clone.getElementById('editToolbar');
+    const tt = clone.getElementById('toast');
+    if(tb) tb.remove();
+    if(tt) tt.remove();
+    // Remove modals & overlays
+    const picker = clone.getElementById('iconPickerModal');
+    const pickerOverlay = clone.getElementById('iconPickerOverlay');
+    const tagModal = clone.getElementById('tagAddModal');
+    const tagModalOverlay = clone.getElementById('tagAddOverlay');
+    if(picker) picker.remove();
+    if(pickerOverlay) pickerOverlay.remove();
+    if(tagModal) tagModal.remove();
+    if(tagModalOverlay) tagModalOverlay.remove();
+    // Remove contenteditable attributes
+    clone.querySelectorAll('[contenteditable]').forEach(el => {
+      el.removeAttribute('contenteditable');
+    });
+    clone.querySelectorAll('[data-editable]').forEach(el => {
+      el.removeAttribute('data-editable');
+    });
+    clone.querySelectorAll('[data-editable-icon]').forEach(el => {
+      el.removeAttribute('data-editable-icon');
+    });
+    // Remove tag/skill delete buttons and add buttons
+    clone.querySelectorAll('.tag-delete-btn, .tag-add-btn, .skill-delete-btn, .skill-add-btn').forEach(el => {
+      el.remove();
+    });
+    clone.body.classList.remove('edit-mode');
+    // Remove edit-mode specific CSS
+    const styleEl = clone.querySelector('style');
+    if(styleEl){
+      let css = styleEl.textContent;
+      css = css.replace(/\/\* Edit Mode[\s\S]*?===== Layout/ig, '/* ====== Layout');
+      css = css.replace(/\.edit-toolbar[\s\S]*?\.toast\.info\{[^}]*\}/g, '');
+      css = css.replace(/\.avatar-upload-overlay[\s\S]*?body\.edit-mode \.data-num\[data-editable\]\{[^}]*\}/g, '');
+      styleEl.textContent = css;
+    }
+    const layout = clone.querySelector('.layout');
+    if(layout) layout.style.paddingTop = '';
+    const sidebar = clone.querySelector('.sidebar');
+    if(sidebar) sidebar.style.top = '';
+    // Remove avatar upload overlay & actions (but keep the image if uploaded)
+    const avOverlay = clone.getElementById('avatarOverlay');
+    const avActions = clone.getElementById('avatarActions');
+    const avInput = clone.getElementById('avatarInput');
+    if(avOverlay) avOverlay.remove();
+    if(avActions) avActions.remove();
+    if(avInput) avInput.remove();
+    // Remove link editor UI
+    const linkEd = clone.getElementById('linkEditor');
+    if(linkEd) linkEd.remove();
+    // Remove link hint icons
+    clone.querySelectorAll('.link-hint-icon').forEach(el => el.remove());
+    // Convert data-href to clickable links
+    clone.querySelectorAll('[data-href]').forEach(el => {
+      const href = el.getAttribute('data-href');
+      if(href){
+        // Wrap the element content in an anchor tag
+        const a = clone.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        // Copy the text content (excluding buttons etc which were already removed)
+        a.innerHTML = el.innerHTML;
+        el.innerHTML = '';
+        el.appendChild(a);
+        el.removeAttribute('data-href');
+      }
+    });
+    // Remove drag handles
+    clone.querySelectorAll('.drag-handle').forEach(el => el.remove());
+    // Remove section index nav
+    const idxNav = clone.getElementById('sectionIndex');
+    if(idxNav) idxNav.remove();
+    // Unwrap draggable-section divs (keep content)
+    clone.querySelectorAll('.draggable-section').forEach(el => {
+      el.removeAttribute('data-section');
+      el.removeAttribute('data-section-label');
+      el.classList.remove('draggable-section');
+    });
+    // Remove edit script
+    const scripts = clone.querySelectorAll('script');
+    scripts.forEach(s => {
+      if(s.textContent.includes('Edit Mode Engine')) s.remove();
+    });
+
+    const htmlContent = '<!DOCTYPE html>\n' + clone.documentElement.outerHTML;
+    const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '唐一丹_GitHub_Portfolio_编辑后.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('HTML 已导出！（含上传的图片）', 'success');
+  }
+
+  function exportPDF(){
+    const wasEdit = editMode;
+    if(wasEdit) toggleEditMode();
+    toolbar.style.display = 'none';
+    setTimeout(()=>{
+      window.print();
+      toolbar.style.display = '';
+      if(wasEdit) toggleEditMode();
+    }, 300);
+  }
+
+  function resetContent(){
+    if(!confirm('确定要重置所有修改吗？此操作不可撤销。')) return;
+    document.querySelector('.layout').innerHTML = originalHTML;
+    const editables = document.querySelectorAll('[data-editable]');
+    editables.forEach(el => {
+      el.contentEditable = editMode ? 'true' : 'false';
+    });
+    rebindIconPickers();
+    rebindTagDeleteButtons();
+    rebindTagAddButtons();
+    rebindSkillDeleteButtons();
+    rebindSkillAddButtons();
+    if(typeof buildIndexNav === 'function'){ buildIndexNav(); addDragHandles(); updateActiveNav(); }
+    showToast('已重置为原始内容', 'success');
+  }
+
+  // Initialize
+  document.body.classList.add('edit-mode');
+  const editables = document.querySelectorAll('[data-editable]');
+  editables.forEach(el => {
+    el.contentEditable = 'true';
+  });
+
+  btnToggle.addEventListener('click', toggleEditMode);
+  btnExportHTML.addEventListener('click', exportHTML);
+  btnExportPDF.addEventListener('click', exportPDF);
+  btnReset.addEventListener('click', resetContent);
+
+  // Keyboard shortcut: Ctrl+S to export
+  document.addEventListener('keydown', (e) => {
+    if((e.ctrlKey || e.metaKey) && e.key === 's'){
+      e.preventDefault();
+      exportHTML();
+    }
+  });
+
+  // ====== Avatar Upload ======
+  const avatarContainer = document.getElementById('avatarContainer');
+  const avatarOverlay = document.getElementById('avatarOverlay');
+  const avatarInput = document.getElementById('avatarInput');
+  const avatarActions = document.getElementById('avatarActions');
+  const avatarReplace = document.getElementById('avatarReplace');
+  const avatarDelete = document.getElementById('avatarDelete');
+
+  function handleAvatarUpload(file){
+    if(!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const existingImg = avatarContainer.querySelector('img');
+      if(existingImg) existingImg.remove();
+      avatarContainer.classList.add('has-image');
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.alt = '头像';
+      avatarContainer.insertBefore(img, avatarOverlay);
+      avatarActions.classList.add('show');
+      showToast('形象照已上传！', 'success');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  avatarOverlay.addEventListener('click', ()=>{ avatarInput.click(); });
+  avatarInput.addEventListener('change', (e)=>{
+    if(e.target.files && e.target.files[0]) handleAvatarUpload(e.target.files[0]);
+  });
+
+  avatarContainer.addEventListener('dragover', (e)=>{
+    e.preventDefault();
+    avatarOverlay.style.background = 'rgba(9,105,218,.6)';
+    avatarOverlay.style.display = 'flex';
+  });
+  avatarContainer.addEventListener('dragleave', ()=>{
+    avatarOverlay.style.background = '';
+    if(!avatarContainer.matches(':hover')) avatarOverlay.style.display = '';
+  });
+  avatarContainer.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    avatarOverlay.style.background = '';
+    avatarOverlay.style.display = '';
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleAvatarUpload(e.dataTransfer.files[0]);
+  });
+
+  avatarReplace.addEventListener('click', ()=>{ avatarInput.click(); });
+  avatarDelete.addEventListener('click', ()=>{
+    const img = avatarContainer.querySelector('img');
+    if(img) img.remove();
+    avatarContainer.classList.remove('has-image');
+    avatarActions.classList.remove('show');
+    showToast('形象照已删除，恢复默认', 'info');
+  });
+
+  // ====== Icon Picker ======
+  const emojiCategories = {
+    '常用': ['📱','💻','🖥️','🎯','📊','🎨','🌏','🧠','🎮','✍️','📸','🎬','🎤','📝','🔥','⭐','💡','🚀','💪','🎓'],
+    '自然': ['🌟','🌈','☀️','🌙','⚡','🔥','💧','🌊','🍃','🌸','🌺','🍀','🌿','🍄','🌍','🌎','🌏','🏔️','🌋','🏖️'],
+    '人物': ['👤','👥','🧑','👦','👧','👨','👩','🧒','👶','🧔','👱','🧑‍💻','🧑‍🎨','🧑‍🔬','🧑‍🚀','🧑‍🎓','🧑‍🏫','🧑‍💼','🧑‍🔧','🧑‍🍳'],
+    '动物': ['🐧','🦊','🐼','🐨','🦁','🐯','🐮','🐷','🐸','🐵','🦄','🐝','🦋','🐢','🐙','🦈','🐬','🐋','🦅','🦜'],
+    '物品': ['🏆','🥇','🥈','🥉','🏅','🎖️','📜','📖','📚','💎','🔮','🎲','🎯','🎪','🎭','🎨','🎬','📷','📹','🔑'],
+    '符号': ['❤️','💙','💚','💛','💜','🧡','🖤','🤍','💯','✅','❌','⚠️','🔄','➕','➖','⬆️','⬇️','🏁','🚩','🔣'],
+    '食物': ['🍎','🍕','🍔','🌮','🍣','🍜','🍱','🧁','🎂','🍩','☕','🍵','🧃','🍺','🍷','🥤','🧊','🍿','🥨','🍟'],
+    '运动': ['⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🥋','🤺','⛷️','🏂','🏄','🚴','🧗','🏇','🏊']
+  };
+
+  let currentIconTarget = null;
+
+  const modal = document.createElement('div');
+  modal.className = 'icon-picker-modal';
+  modal.id = 'iconPickerModal';
+  const iconOverlay = document.createElement('div');
+  iconOverlay.className = 'icon-picker-overlay';
+  iconOverlay.id = 'iconPickerOverlay';
+
+  let modalHTML = '<div class="icon-picker-title"><span>选择图标</span><button class="icon-picker-close" id="iconPickerClose">✕</button></div>';
+  for(const [cat, emojis] of Object.entries(emojiCategories)){
+    modalHTML += '<div style="font-size:11px;color:var(--fg-muted);margin-bottom:4px;margin-top:8px;font-weight:600;">' + cat + '</div>';
+    modalHTML += '<div class="icon-picker-grid">';
+    for(const emoji of emojis){
+      modalHTML += '<div class="icon-picker-item" data-emoji="' + emoji + '">' + emoji + '</div>';
+    }
+    modalHTML += '</div>';
+  }
+  modalHTML += '<div class="icon-picker-custom"><input type="text" id="iconCustomInput" placeholder="输入自定义 emoji 或文字..." maxlength="2"><button id="iconCustomApply">应用</button></div>';
+  modal.innerHTML = modalHTML;
+  document.body.appendChild(modal);
+  document.body.appendChild(iconOverlay);
+
+  function openIconPicker(targetEl){
+    currentIconTarget = targetEl;
+    modal.classList.add('show');
+    iconOverlay.classList.add('show');
+    const input = document.getElementById('iconCustomInput');
+    if(input) input.value = targetEl.textContent.trim();
+  }
+  function closeIconPicker(){
+    modal.classList.remove('show');
+    iconOverlay.classList.remove('show');
+    currentIconTarget = null;
+  }
+  function applyIcon(emoji){
+    if(!currentIconTarget) return;
+    currentIconTarget.textContent = emoji;
+    closeIconPicker();
+    showToast('图标已更新', 'success');
+  }
+
+  modal.addEventListener('click', (e)=>{
+    const item = e.target.closest('.icon-picker-item');
+    if(item){ applyIcon(item.getAttribute('data-emoji')); return; }
+    if(e.target.id === 'iconPickerClose') closeIconPicker();
+  });
+  iconOverlay.addEventListener('click', closeIconPicker);
+
+  document.addEventListener('click', (e)=>{
+    if(e.target.id === 'iconCustomApply'){
+      const input = document.getElementById('iconCustomInput');
+      if(input && input.value.trim()) applyIcon(input.value.trim());
+    }
+  });
+  document.addEventListener('keydown', (e)=>{
+    if(e.target.id === 'iconCustomInput' && e.key === 'Enter'){
+      e.preventDefault();
+      const input = document.getElementById('iconCustomInput');
+      if(input && input.value.trim()) applyIcon(input.value.trim());
+    }
+  });
+
+  function rebindIconPickers(){
+    document.querySelectorAll('[data-editable-icon]').forEach(el => {
+      el.style.cursor = editMode ? 'pointer' : 'default';
+      const newEl = el.cloneNode(true);
+      el.parentNode.replaceChild(newEl, el);
+      newEl.addEventListener('click', (e)=>{
+        if(!editMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openIconPicker(newEl);
+      });
+    });
+  }
+  rebindIconPickers();
+
+  // ====== Tag Add/Delete ======
+  const tagColors = [
+    {cls:'tag-green', bg:'#dafbe1', color:'#1a7f37'},
+    {cls:'tag-blue', bg:'#ddf4ff', color:'#0969da'},
+    {cls:'tag-pink', bg:'#ffebe9', color:'#cf222e'},
+    {cls:'tag-purple', bg:'#fbefff', color:'#8250df'},
+    {cls:'tag-orange', bg:'#fff8c5', color:'#9a6700'},
+    {cls:'tag-gray', bg:'#f6f8fa', color:'#656d76'}
+  ];
+
+  // Tag Add Modal
+  const tagModal = document.createElement('div');
+  tagModal.className = 'tag-add-modal';
+  tagModal.id = 'tagAddModal';
+  const tagOverlay = document.createElement('div');
+  tagOverlay.className = 'icon-picker-overlay';
+  tagOverlay.id = 'tagAddOverlay';
+
+  let tagModalHTML = '<div class="tag-add-modal-title"><span>添加标签</span><button class="tag-add-modal-close" id="tagAddClose">✕</button></div>';
+  tagModalHTML += '<input type="text" id="tagAddInput" placeholder="输入标签文字..." maxlength="20">';
+  tagModalHTML += '<div class="tag-color-options" id="tagColorOptions">';
+  tagColors.forEach((c, i) => {
+    tagModalHTML += '<div class="tag-color-opt' + (i===0 ? ' selected' : '') + '" data-cls="' + c.cls + '" style="background:' + c.bg + ';" title="' + c.cls.replace('tag-','') + '"></div>';
+  });
+  tagModalHTML += '</div>';
+  tagModalHTML += '<button class="tag-add-confirm" id="tagAddConfirm">添加</button>';
+  tagModal.innerHTML = tagModalHTML;
+  document.body.appendChild(tagModal);
+  document.body.appendChild(tagOverlay);
+
+  let currentTagContainer = null;
+  let selectedTagColor = 'tag-green';
+
+  function openTagAddModal(container){
+    currentTagContainer = container;
+    tagModal.classList.add('show');
+    tagOverlay.classList.add('show');
+    const input = document.getElementById('tagAddInput');
+    if(input){ input.value = ''; input.focus(); }
+    selectedTagColor = 'tag-green';
+    document.querySelectorAll('.tag-color-opt').forEach(o => o.classList.remove('selected'));
+    const first = document.querySelector('.tag-color-opt');
+    if(first) first.classList.add('selected');
+  }
+  function closeTagAddModal(){
+    tagModal.classList.remove('show');
+    tagOverlay.classList.remove('show');
+    currentTagContainer = null;
+  }
+  function addTag(){
+    const input = document.getElementById('tagAddInput');
+    if(!input || !input.value.trim() || !currentTagContainer) return;
+    const text = input.value.trim();
+    const newTag = document.createElement('span');
+    newTag.className = 'tag ' + selectedTagColor;
+    newTag.setAttribute('data-editable', '');
+    newTag.contentEditable = 'true';
+    newTag.innerHTML = text + '<button class="tag-delete-btn">×</button>';
+    // Insert before the "+" button
+    const addBtn = currentTagContainer.querySelector('.tag-add-btn');
+    if(addBtn){
+      currentTagContainer.insertBefore(newTag, addBtn);
+    } else {
+      currentTagContainer.appendChild(newTag);
+    }
+    bindTagDeleteButton(newTag.querySelector('.tag-delete-btn'));
+    closeTagAddModal();
+    showToast('标签已添加', 'success');
+  }
+
+  tagModal.addEventListener('click', (e)=>{
+    if(e.target.id === 'tagAddClose'){ closeTagAddModal(); return; }
+    if(e.target.id === 'tagAddConfirm'){ addTag(); return; }
+    const colorOpt = e.target.closest('.tag-color-opt');
+    if(colorOpt){
+      document.querySelectorAll('.tag-color-opt').forEach(o => o.classList.remove('selected'));
+      colorOpt.classList.add('selected');
+      selectedTagColor = colorOpt.getAttribute('data-cls');
+    }
+  });
+  tagOverlay.addEventListener('click', closeTagAddModal);
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.target.id === 'tagAddInput' && e.key === 'Enter'){
+      e.preventDefault();
+      addTag();
+    }
+  });
+
+  function bindTagDeleteButton(btn){
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const tag = btn.closest('.tag');
+      if(tag) tag.remove();
+      showToast('标签已删除', 'info');
+    });
+  }
+
+  function rebindTagDeleteButtons(){
+    document.querySelectorAll('.tag-delete-btn').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const tag = newBtn.closest('.tag');
+        if(tag) tag.remove();
+        showToast('标签已删除', 'info');
+      });
+    });
+  }
+
+  function bindTagAddButton(btn){
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const container = btn.closest('.card-tags') || btn.closest('.timeline-tags');
+      if(container) openTagAddModal(container);
+    });
+  }
+
+  function rebindTagAddButtons(){
+    document.querySelectorAll('.tag-add-btn').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const container = newBtn.closest('.card-tags') || newBtn.closest('.timeline-tags');
+        if(container) openTagAddModal(container);
+      });
+    });
+  }
+
+  rebindTagDeleteButtons();
+  rebindTagAddButtons();
+
+  // ====== Skill Add/Delete ======
+  function bindSkillDeleteButton(btn){
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const chip = btn.closest('.skill-chip');
+      if(chip) chip.remove();
+      showToast('技能已删除', 'info');
+    });
+  }
+
+  function rebindSkillDeleteButtons(){
+    document.querySelectorAll('.skill-delete-btn').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const chip = newBtn.closest('.skill-chip');
+        if(chip) chip.remove();
+        showToast('技能已删除', 'info');
+      });
+    });
+  }
+
+  function bindSkillAddButton(btn){
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const row = btn.closest('.skill-bar-row');
+      if(!row) return;
+      const text = prompt('输入新技能名称：');
+      if(!text || !text.trim()) return;
+      const newChip = document.createElement('span');
+      newChip.className = 'skill-chip';
+      newChip.setAttribute('data-editable', '');
+      newChip.contentEditable = 'true';
+      newChip.innerHTML = text.trim() + '<button class="skill-delete-btn">×</button>';
+      row.insertBefore(newChip, btn);
+      bindSkillDeleteButton(newChip.querySelector('.skill-delete-btn'));
+      showToast('技能已添加', 'success');
+    });
+  }
+
+  function rebindSkillAddButtons(){
+    document.querySelectorAll('.skill-add-btn').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const row = newBtn.closest('.skill-bar-row');
+        if(!row) return;
+        const text = prompt('输入新技能名称：');
+        if(!text || !text.trim()) return;
+        const newChip = document.createElement('span');
+        newChip.className = 'skill-chip';
+        newChip.setAttribute('data-editable', '');
+        newChip.contentEditable = 'true';
+        newChip.innerHTML = text.trim() + '<button class="skill-delete-btn">×</button>';
+        row.insertBefore(newChip, newBtn);
+        bindSkillDeleteButton(newChip.querySelector('.skill-delete-btn'));
+        showToast('技能已添加', 'success');
+      });
+    });
+  }
+
+  rebindSkillDeleteButtons();
+  rebindSkillAddButtons();
+
+  // ====== Prevent contentEditable from deleting buttons ======
+  document.addEventListener('input', (e)=>{
+    const el = e.target;
+    if(!el.hasAttribute('data-editable')) return;
+    // Check if delete buttons were removed
+    if(el.classList.contains('tag') && !el.querySelector('.tag-delete-btn')){
+      const btn = document.createElement('button');
+      btn.className = 'tag-delete-btn';
+      btn.textContent = '×';
+      bindTagDeleteButton(btn);
+      el.appendChild(btn);
+    }
+    if(el.classList.contains('skill-chip') && !el.querySelector('.skill-delete-btn')){
+      const btn = document.createElement('button');
+      btn.className = 'skill-delete-btn';
+      btn.textContent = '×';
+      bindSkillDeleteButton(btn);
+      el.appendChild(btn);
+    }
+  });
+
+  // ====== Link Editor (hyperlink support) ======
+  // Create link editor popup
+  const linkEditor = document.createElement('div');
+  linkEditor.className = 'link-editor';
+  linkEditor.id = 'linkEditor';
+  linkEditor.innerHTML = '<input type="text" id="linkEditorInput" placeholder="输入链接 URL（如 https://...）"><button class="link-save" id="linkEditorSave">保存</button><button class="link-remove" id="linkEditorRemove">移除链接</button><button class="link-close" id="linkEditorClose">✕</button>';
+  document.body.appendChild(linkEditor);
+
+  let currentLinkTarget = null;
+
+  function openLinkEditor(el, anchorRect){
+    currentLinkTarget = el;
+    const input = document.getElementById('linkEditorInput');
+    input.value = el.getAttribute('data-href') || '';
+    // Position near the element
+    const rect = anchorRect || el.getBoundingClientRect();
+    let top = rect.bottom + 6;
+    let left = rect.left;
+    // Keep within viewport
+    if(top + 50 > window.innerHeight) top = rect.top - 46;
+    if(left + 300 > window.innerWidth) left = window.innerWidth - 310;
+    if(left < 10) left = 10;
+    linkEditor.style.top = top + 'px';
+    linkEditor.style.left = left + 'px';
+    linkEditor.classList.add('show');
+    // Toggle remove button visibility
+    const removeBtn = document.getElementById('linkEditorRemove');
+    removeBtn.style.display = el.hasAttribute('data-href') ? 'inline-block' : 'none';
+    setTimeout(()=>{ input.focus(); }, 50);
+  }
+
+  function closeLinkEditor(){
+    linkEditor.classList.remove('show');
+    currentLinkTarget = null;
+  }
+
+  function saveLink(){
+    if(!currentLinkTarget) return;
+    const input = document.getElementById('linkEditorInput');
+    const url = input.value.trim();
+    if(url){
+      currentLinkTarget.setAttribute('data-href', url);
+      // Add link icon hint if not present
+      if(!currentLinkTarget.querySelector('.link-hint-icon')){
+        const icon = document.createElement('span');
+        icon.className = 'link-hint-icon';
+        icon.innerHTML = '🔗';
+        // Append after text content but before any buttons
+        const btn = currentLinkTarget.querySelector('.tag-delete-btn, .skill-delete-btn');
+        if(btn){
+          currentLinkTarget.insertBefore(icon, btn);
+        } else {
+          currentLinkTarget.appendChild(icon);
+        }
+      }
+      showToast('链接已设置', 'success');
+    } else {
+      removeLink();
+      return;
+    }
+    closeLinkEditor();
+  }
+
+  function removeLink(){
+    if(!currentLinkTarget) return;
+    currentLinkTarget.removeAttribute('data-href');
+    const icon = currentLinkTarget.querySelector('.link-hint-icon');
+    if(icon) icon.remove();
+    showToast('链接已移除', 'info');
+    closeLinkEditor();
+  }
+
+  document.getElementById('linkEditorSave').addEventListener('click', saveLink);
+  document.getElementById('linkEditorRemove').addEventListener('click', removeLink);
+  document.getElementById('linkEditorClose').addEventListener('click', closeLinkEditor);
+
+  // Enter to save in link editor
+  document.addEventListener('keydown', (e)=>{
+    if(e.target.id === 'linkEditorInput' && e.key === 'Enter'){
+      e.preventDefault();
+      saveLink();
+    }
+    if(e.key === 'Escape'){
+      closeLinkEditor();
+      closeTagAddModal();
+      closeIconPicker();
+    }
+  });
+
+  // Click outside to close link editor
+  document.addEventListener('mousedown', (e)=>{
+    if(!linkEditor.contains(e.target) && currentLinkTarget){
+      closeLinkEditor();
+    }
+  });
+
+  // Double-click in edit mode to set link; click in non-edit mode to follow link
+  document.addEventListener('dblclick', (e)=>{
+    if(!editMode) return;
+    const el = e.target.closest('[data-editable]');
+    if(!el) return;
+    // Don't trigger on buttons inside editable
+    if(e.target.closest('.tag-delete-btn, .skill-delete-btn, .tag-add-btn, .skill-add-btn, .link-hint-icon')) return;
+    e.preventDefault();
+    openLinkEditor(el, el.getBoundingClientRect());
+  });
+
+  // Click on linked element in non-edit mode → navigate
+  document.addEventListener('click', (e)=>{
+    if(editMode) return;
+    const el = e.target.closest('[data-editable][data-href]');
+    if(!el) return;
+    if(e.target.closest('.link-hint-icon')) return;
+    const href = el.getAttribute('data-href');
+    if(href){
+      e.preventDefault();
+      window.open(href, '_blank', 'noopener');
+    }
+  });
+
+  // In edit mode, clicking a link hint icon opens the link editor
+  document.addEventListener('click', (e)=>{
+    if(!editMode) return;
+    if(e.target.closest('.link-hint-icon')){
+      const el = e.target.closest('[data-editable]');
+      if(el){
+        e.preventDefault();
+        e.stopPropagation();
+        openLinkEditor(el, el.getBoundingClientRect());
+      }
+    }
+  });
+
+  // ====== Section Index Nav + Drag Reorder ======
+  const indexNav = document.getElementById('sectionIndex');
+  const mainEl = document.querySelector('.main');
+  const sections = document.querySelectorAll('.draggable-section');
+
+  // Build index nav
+  function buildIndexNav(){
+    indexNav.innerHTML = '';
+    document.querySelectorAll('.draggable-section').forEach(sec => {
+      const label = sec.getAttribute('data-section-label') || sec.getAttribute('data-section');
+      const id = sec.getAttribute('data-section');
+      const a = document.createElement('a');
+      a.className = 'section-index-item';
+      a.href = '#' + id;
+      a.textContent = label;
+      a.setAttribute('data-nav-for', id);
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        sec.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      indexNav.appendChild(a);
+    });
+  }
+
+  // Add IDs to sections for anchor linking
+  sections.forEach(sec => {
+    sec.id = sec.getAttribute('data-section');
+  });
+  buildIndexNav();
+
+  // Scroll spy: highlight active index item
+  function updateActiveNav(){
+    const navItems = indexNav.querySelectorAll('.section-index-item');
+    let activeId = null;
+    document.querySelectorAll('.draggable-section').forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if(rect.top <= 120 && rect.bottom > 80){
+        activeId = sec.getAttribute('data-section');
+      }
+    });
+    navItems.forEach(item => {
+      item.classList.toggle('active', item.getAttribute('data-nav-for') === activeId);
+    });
+  }
+  window.addEventListener('scroll', updateActiveNav, {passive:true});
+  updateActiveNav();
+
+  // Drag & Drop reorder
+  let dragSrcEl = null;
+
+  function addDragHandles(){
+    document.querySelectorAll('.draggable-section').forEach(sec => {
+      if(sec.querySelector('.drag-handle')) return;
+      const handle = document.createElement('div');
+      handle.className = 'drag-handle';
+      handle.setAttribute('draggable', 'true');
+      handle.textContent = '⠿';
+      handle.title = '拖拽排序';
+      sec.prepend(handle);
+
+      handle.addEventListener('dragstart', (e)=>{
+        dragSrcEl = sec;
+        sec.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', sec.getAttribute('data-section'));
+      });
+
+      handle.addEventListener('dragend', ()=>{
+        sec.classList.remove('dragging');
+        document.querySelectorAll('.draggable-section').forEach(s => s.classList.remove('drag-over'));
+        dragSrcEl = null;
+      });
+    });
+  }
+
+  // Handle dragover/drop on sections
+  mainEl.addEventListener('dragover', (e)=>{
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.target.closest('.draggable-section');
+    if(!target || target === dragSrcEl) return;
+    document.querySelectorAll('.draggable-section').forEach(s => s.classList.remove('drag-over'));
+    target.classList.add('drag-over');
+  });
+
+  mainEl.addEventListener('dragleave', (e)=>{
+    const target = e.target.closest('.draggable-section');
+    if(target) target.classList.remove('drag-over');
+  });
+
+  mainEl.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    const target = e.target.closest('.draggable-section');
+    if(!target || !dragSrcEl || target === dragSrcEl) return;
+    target.classList.remove('drag-over');
+    // Determine insert position
+    const allSections = [...document.querySelectorAll('.draggable-section')];
+    const dragIdx = allSections.indexOf(dragSrcEl);
+    const targetIdx = allSections.indexOf(target);
+    if(dragIdx < targetIdx){
+      mainEl.insertBefore(dragSrcEl, target.nextSibling);
+    } else {
+      mainEl.insertBefore(dragSrcEl, target);
+    }
+    // Rebuild index nav to reflect new order
+    buildIndexNav();
+    addDragHandles();
+    updateActiveNav();
+    showToast('模块位置已调整', 'success');
+  });
+
+  addDragHandles();
+
+})();
+</script>
+
+</body>
+</html>
