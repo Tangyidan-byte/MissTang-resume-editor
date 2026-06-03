@@ -1151,6 +1151,93 @@ body:not(.edit-mode) [data-editable][data-href]:hover{
   opacity:.5;
 }
 body:not(.edit-mode) .link-hint-icon{display:none;}
+
+/* ====== Password Modal ====== */
+.password-modal-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.45);
+  z-index:100010;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(3px);
+}
+.password-modal-overlay.show{
+  display:flex;
+}
+.password-modal{
+  background:#fff;
+  border-radius:var(--radius-lg);
+  padding:32px 36px;
+  min-width:340px;
+  box-shadow:0 16px 48px rgba(0,0,0,.2);
+  text-align:center;
+  animation:passwordModalIn .2s ease-out;
+}
+@keyframes passwordModalIn{
+  from{transform:scale(.92);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.password-modal-title{
+  font-size:16px;
+  font-weight:600;
+  color:var(--fg-default);
+  margin-bottom:20px;
+}
+.password-input{
+  width:100%;
+  padding:10px 14px;
+  border:1.5px solid var(--border-default);
+  border-radius:var(--radius-md);
+  font-size:15px;
+  text-align:center;
+  letter-spacing:4px;
+  outline:none;
+  transition:border-color .2s;
+  box-sizing:border-box;
+}
+.password-input:focus{
+  border-color:var(--accent-fg);
+  box-shadow:0 0 0 3px rgba(9,105,218,.15);
+}
+.password-modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+  justify-content:center;
+}
+.password-modal-actions button{
+  padding:8px 24px;
+  border-radius:var(--radius-md);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  border:1px solid var(--border-default);
+  transition:all .15s;
+}
+.password-cancel{
+  background:#fff;
+  color:var(--fg-muted);
+}
+.password-cancel:hover{
+  background:var(--bg-inset);
+}
+.password-confirm{
+  background:var(--accent-emphasis);
+  color:#fff;
+  border-color:var(--accent-emphasis);
+}
+.password-confirm:hover{
+  background:#0550ae;
+}
+.password-error{
+  color:var(--danger-fg);
+  font-size:12px;
+  margin-top:12px;
+  min-height:18px;
+  font-weight:500;
+}
 </style>
 </head>
 <body>
@@ -1161,7 +1248,7 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
     ✏️ <span>可编辑</span>
   </div>
   <div class="separator"></div>
-  <button id="btnToggleEdit" class="primary">编辑模式：开启</button>
+  <button id="btnToggleEdit">编辑模式：关闭</button>
   <button id="btnExportHTML">导出 HTML</button>
   <button id="btnExportPDF">导出 PDF（打印）</button>
   <button id="btnSave" class="save-btn">💾 保存</button>
@@ -1196,7 +1283,7 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
 
     <h1 data-editable>唐一丹</h1>
     <div class="username" data-editable>yidantang</div>
-    <div class="bio" data-editable>人大新闻系 · 内容运营 × 产品增长 × 海外传播<br>小红书/抖音/快手/TikTok多平台实战<br>用数据驱动增长，用内容连接用户</div>
+    <div class="bio" data-editable>人大新闻系 · 达人/用户 × 产品增长 × 海外传播<br>小红书/抖音/快手/TikTok多平台实战<br>用数据驱动增长，用内容连接用户</div>
     <button class="follow-btn" onclick="alert('感谢关注！')">Follow</button>
 
     <ul class="meta-list">
@@ -1214,7 +1301,7 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
       </li>
       <li>
         <svg viewBox="0 0 16 16"><path d="M1.75 2A1.75 1.75 0 000 3.75v.736a.75.75 0 000 .027v7.737C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0016 12.25v-8.5A1.75 1.75 0 0014.25 2H1.75zM14.5 6.5v5.75a.25.25 0 01-.25.25H1.75a.25.25 0 01-.25-.25V6.5h13z"/></svg>
-        <span data-editable>yidantang@ruc.edu.cn</span>
+        <span data-editable>1198756318@qq.com</span>
       </li>
       <li>
         <svg viewBox="0 0 16 16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0114.25 16H1.75A1.75 1.75 0 010 14.25V1.75zM1.75 1.5a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V1.75a.25.25 0 00-.25-.25H1.75zM8 10a2 2 0 100-4 2 2 0 000 4z"/></svg>
@@ -1725,7 +1812,9 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
 <script>
 // ====== Edit Mode Engine ======
 (function(){
-  let editMode = true;
+  let editMode = false;
+  let editUnlocked = false;
+  const EDIT_PASSWORD = '441126';
   const toolbar = document.getElementById('editToolbar');
   const btnToggle = document.getElementById('btnToggleEdit');
   const btnExportHTML = document.getElementById('btnExportHTML');
@@ -1745,17 +1834,91 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
   }
 
   function toggleEditMode(){
+    if(!editUnlocked){
+      // Show password modal instead of prompt
+      showPasswordModal();
+      return;
+    }
     editMode = !editMode;
     document.body.classList.toggle('edit-mode', editMode);
     const editables = document.querySelectorAll('[data-editable]');
     editables.forEach(el => {
       el.contentEditable = editMode ? 'true' : 'false';
     });
+    // Toggle icon picker cursors
+    document.querySelectorAll('[data-editable-icon]').forEach(el => {
+      el.style.cursor = editMode ? 'pointer' : 'default';
+    });
     btnToggle.textContent = editMode ? '编辑模式：开启' : '编辑模式：关闭';
     btnToggle.className = editMode ? 'primary' : '';
     statusDot.className = 'status-dot ' + (editMode ? 'active' : 'inactive');
     statusText.textContent = editMode ? '点击文字/图标即可编辑' : '只读模式';
+    // Show/hide save & reset buttons based on edit mode
+    btnSave.style.display = editMode ? '' : 'none';
+    btnReset.style.display = editMode ? '' : 'none';
     showToast(editMode ? '已开启编辑模式' : '已关闭编辑模式', 'info');
+  }
+
+  // ====== Password Modal ======
+  let passwordModal = null;
+  function showPasswordModal(){
+    if(passwordModal) { passwordModal.classList.add('show'); return; }
+    passwordModal = document.createElement('div');
+    passwordModal.className = 'password-modal-overlay';
+    passwordModal.id = 'passwordModal';
+    passwordModal.innerHTML = '<div class="password-modal">'
+      + '<div class="password-modal-title">🔒 输入密码开启编辑模式</div>'
+      + '<input type="password" id="passwordInput" class="password-input" placeholder="请输入密码..." maxlength="10" autocomplete="off">'
+      + '<div class="password-modal-actions">'
+      + '<button class="password-cancel" id="passwordCancel">取消</button>'
+      + '<button class="password-confirm" id="passwordConfirm">确认</button>'
+      + '</div>'
+      + '<div class="password-error" id="passwordError"></div>'
+      + '</div>';
+    document.body.appendChild(passwordModal);
+
+    const input = document.getElementById('passwordInput');
+    const confirmBtn = document.getElementById('passwordConfirm');
+    const cancelBtn = document.getElementById('passwordCancel');
+    const errorEl = document.getElementById('passwordError');
+
+    setTimeout(()=>{ input.focus(); }, 100);
+
+    function verifyPassword(){
+      const pwd = input.value;
+      if(pwd === EDIT_PASSWORD){
+        editUnlocked = true;
+        passwordModal.classList.remove('show');
+        editMode = true;
+        document.body.classList.add('edit-mode');
+        const editables = document.querySelectorAll('[data-editable]');
+        editables.forEach(el => { el.contentEditable = 'true'; });
+        document.querySelectorAll('[data-editable-icon]').forEach(el => { el.style.cursor = 'pointer'; });
+        btnToggle.textContent = '编辑模式：开启';
+        btnToggle.className = 'primary';
+        statusDot.className = 'status-dot active';
+        statusText.textContent = '点击文字/图标即可编辑';
+        btnSave.style.display = '';
+        btnReset.style.display = '';
+        showToast('密码正确，编辑模式已开启', 'success');
+      } else {
+        errorEl.textContent = '密码错误，请重试';
+        input.value = '';
+        input.focus();
+        input.style.borderColor = '#cf222e';
+        setTimeout(()=>{ input.style.borderColor = ''; }, 1500);
+      }
+    }
+
+    confirmBtn.addEventListener('click', verifyPassword);
+    cancelBtn.addEventListener('click', ()=>{ passwordModal.classList.remove('show'); });
+    passwordModal.addEventListener('click', (e)=>{
+      if(e.target === passwordModal) passwordModal.classList.remove('show');
+    });
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); verifyPassword(); }
+      if(e.key === 'Escape') passwordModal.classList.remove('show');
+    });
   }
 
   function exportHTML(){
@@ -1887,6 +2050,7 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
 
   // ====== Save / Load (localStorage) ======
   const STORAGE_KEY = 'github_portfolio_saved';
+  const CACHE_VERSION = 'v2_20260603';
   const btnSave = document.getElementById('btnSave');
 
   function saveContent(){
@@ -1895,7 +2059,8 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
       if(!layout) return;
       const data = {
         html: layout.innerHTML,
-        savedAt: new Date().toISOString()
+        savedAt: new Date().toISOString(),
+        version: CACHE_VERSION
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       // Visual feedback
@@ -1922,6 +2087,11 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
       if(!raw) return false;
       const data = JSON.parse(raw);
       if(!data.html) return false;
+      // Check version - if saved before this update, discard old cache
+      if(data.version && data.version !== CACHE_VERSION){
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+      }
       const layout = document.querySelector('.layout');
       if(!layout) return false;
       layout.innerHTML = data.html;
@@ -2005,23 +2175,26 @@ body:not(.edit-mode) .link-hint-icon{display:none;}
   // Try to restore saved content on load
   loadContent();
 
-  // Initialize
-  document.body.classList.add('edit-mode');
-  const editables = document.querySelectorAll('[data-editable]');
-  editables.forEach(el => {
-    el.contentEditable = 'true';
-  });
+  // Initialize - edit mode OFF by default, requires password
+  // Do NOT add edit-mode class or set contentEditable on load
+  btnToggle.textContent = '编辑模式：关闭';
+  btnToggle.className = '';
+  statusDot.className = 'status-dot inactive';
+  statusText.textContent = '只读模式';
+  // Hide save & reset buttons until edit mode is unlocked
+  btnSave.style.display = 'none';
+  btnReset.style.display = 'none';
 
   btnToggle.addEventListener('click', toggleEditMode);
   btnExportHTML.addEventListener('click', exportHTML);
   btnExportPDF.addEventListener('click', exportPDF);
   btnReset.addEventListener('click', resetContent);
 
-  // Keyboard shortcut: Ctrl+S to save
+  // Keyboard shortcut: Ctrl+S to save (only in edit mode)
   document.addEventListener('keydown', (e) => {
     if((e.ctrlKey || e.metaKey) && e.key === 's'){
       e.preventDefault();
-      saveContent();
+      if(editMode) saveContent();
     }
   });
 
